@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Closest Locations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        thead {
+            background-color: #6200ea;
+            color: #ffffff;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+        /* Rounded buttons with hover animation and shadow */
+        .btn-location {
+            border-radius: 50px;
+            width: 180px;          /* Fixed width for all buttons */
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-location:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+        .btn-black {
+            background-color: black;
+            color: antiquewhite;
+        }
+        .btn-right {
+             float: right; /* Aligns the button to the right side */
+             margin-top: -20px; /* Adjusts the top margin to position it above the content */
+        }
+    </style>
+</head>
+<body>
+    <form method="GET" action="">
+        <input class="rounded-label" type="text" id="filterInput" placeholder="Search by name..." onkeyup="filterTable()">
+        <button type="submit">Filter</button>
+    </form>
+    <h1>Closest Locations</h1>
+    <a href="{% url 'worker_list' %}" class="btn btn-secondary mt-3 form-group rounded-label">Back to Home</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Distance (miles)</th>
+            </tr>
+        </thead>
+        <tbody id="locationTableBody">
+            {% for location, distance in locations %}
+            <tr>
+                <td>{{ location.name }}</td>
+                <td>{{ location.address }}</td>
+                <td>{{ distance|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function filterTable() {
+            // Get the input value and convert it to lowercase
+            const filter = document.getElementById('filterInput').value.toLowerCase();
+            // Get the table body
+            const tableBody = document.getElementById('locationTableBody');
+            // Get all rows in the table body
+            const rows = tableBody.getElementsByTagName('tr');
+
+            // Loop through all rows and hide those that don't match the filter
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let rowVisible = false;
+
+                // Check if any cell in the row matches the filter
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(filter)) {
+                        rowVisible = true;
+                        break;
+                    }
+                }
+
+                // Show or hide the row based on whether it matched the filter
+                rows[i].style.display = rowVisible ? '' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>

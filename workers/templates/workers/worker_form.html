@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Locator with Pills</title>
+    {% load static %}
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Pill styles */
+        .nav-pills .nav-link {
+            border-radius: 50px;
+            width: 150px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+            margin: 10px auto;
+            color: #fff;
+            background-color: black;
+        }
+
+        .nav-pills .nav-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Content section styles */
+        .tab-content {
+            margin-top: 20px;
+        }
+
+        .btn-location {
+            border-radius: 50px;
+            width: 180px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-location:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+        .form-container {
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background-color: #ffffff;
+        }
+        
+        .logo {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 150px;
+        }
+
+        /* Button grid styles */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            justify-items: center;
+            margin-top: 20px;
+        }
+
+       /* Rounded buttons with hover animation and shadow */
+        .btn-location {
+            border-radius: 50px;
+            width: 180px;          /* Fixed width for all buttons */
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-location:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+        .btn-black {
+            background-color: black;
+            color: antiquewhite;
+        }
+        .btn-right {
+             float: right; /* Aligns the button to the right side */
+             margin-top: -20px; /* Adjusts the top margin to position it above the content */
+        }
+    </style>
+    </style>
+</head>
+<body>
+    <style>
+        .canvas-container {
+            background-color: #ffffff; /* White background for the canvas effect */
+            padding: 20px; /* Padding around the form */
+            border-radius: 15px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Drop shadow */
+            max-width: 400px; /* Maximum width of the container */
+            margin: 0 auto; /* Center the container */
+        }
+    
+        .form-group {
+            margin-bottom: 20px; /* Space between form groups */
+        }
+    
+        .rounded-label {
+            display: inline-block;
+            padding: 8px 12px; /* Padding for labels */
+            background-color: #007bff; /* Button color */
+            color: white; /* Text color */
+            border-radius: 20px; /* Rounded corners for labels */
+            margin-bottom: 5px; /* Space between label and input */
+        }
+    
+        .rounded-input {
+            width: auto; /* Adjust width to fit content */
+            display: inline-block; /* Aligns input fields horizontally */
+            margin: 0 auto; /* Center the input fields */
+            border-radius: 20px; /* Rounded corners for input fields */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Drop shadow */
+        }
+    
+        .rounded-button {
+            border-radius: 20px; /* Rounded corners for button */
+            padding: 10px 20px; /* Padding for button */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Drop shadow */
+            transition: transform 0.3s, box-shadow 0.3s; /* Animation on hover */
+        }
+    
+        .rounded-button:hover {
+            transform: scale(1.05); /* Slightly larger on hover */
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
+        }
+    </style>
+    
+    
+<div class="container form-container">
+    <!-- Add this button inside your existing worker_form.html page -->
+<a href="{% url 'location_finder' %}" class="btn btn-primary mt-3 rounded-button">Find Closest Location</a>
+<a href="https://findthatpostcode.uk/search/" class="btn btn-right btn-primary mt-3 rounded-button">Find Geocode</a>
+
+    <img src="{% static 'workers/logo.png' %}" alt="Company Logo" class="logo mb-4"/>
+    <h1 class="text-center">Find the Closest Workers</h1>
+
+    <!-- Manual Coordinates Form Container -->
+<div class="canvas-container text-center mb-4">
+    <form id="manualCoordinatesForm" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="latInput" class="rounded-label">Latitude:</label>
+            <input type="text" class="form-control rounded-input" id="latInput" name="lat" required maxlength="20">
+        </div>
+        <div class="form-group">
+            <label for="longInput" class="rounded-label">Longitude:</label>
+            <input type="text" class="form-control rounded-input" id="longInput" name="long" required maxlength="20">
+        </div>
+        <button type="submit" class="btn btn-primary rounded-button">Submit Coordinates</button>
+    </form>
+</div>
+
+    <!-- Pills Navigation -->
+    <ul class="nav nav-pills justify-content-center" id="workerPills" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="cygnet-tab" data-toggle="pill" href="#cygnet" role="tab" aria-controls="cygnet" aria-selected="true">CYGNET</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="elysium-tab" data-toggle="pill" href="#elysium" role="tab" aria-controls="elysium" aria-selected="false">ELYSIUM</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="neuven-tab" data-toggle="pill" href="#neuven" role="tab" aria-controls="neuven" aria-selected="false">NEUVEN</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="neuven-tab" data-toggle="pill" href="#nhs" role="tab" aria-controls="neuven" aria-selected="false">NHS</a>
+        </li>
+    </ul>
+
+    <!-- Pills Content -->
+    <div class="tab-content">
+        <!-- CYGNET Section -->
+        <div class="tab-pane fade show active" id="cygnet" role="tabpanel" aria-labelledby="cygnet-tab">
+            <div class="btn-grid">
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.365867, -2.964238)"> KEWSTOKE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.58624, -2.31713)"> HOSPITAL BURY</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.92335, 0.89328)"> HOSPITAL COLCHESTER</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.72844, -1.77432)"> HOSPITAL WYKE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.28233, 0.55847)"> HOSPITAL MAIDSTONE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.50948, -2.61768)"> HOSPITAL BRUNEL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.9077, -1.45432)"> HOSPITAL DERBY</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.90875, -1.18391)"> HOSPITAL CLIFTON</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.47243, -0.01068)"> HOSPITAL BLACKHEATHE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.56706, -0.33759)"> HOSPITAL HARROW</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.76085, -3.28664)"> ST. TEILO HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.58051, -0.31965)"> LODGE KENTON</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.118298, 0.953233)"> HOSPITAL PADDOCKS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.452019, -0.012862)"> LEWISHAM LODGE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.999331, -1.547568)"> HARROGATE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.478452, -1.994877)"> OLDBURY</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.321247, -0.829178)"> BEECHES</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.59799, -2.088916)"> HOSPITAL WOLVERHAMPTON</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.11782, -2.46625)"> NIELD HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.36803, -1.45932)"> HOSPITAL SHEFFIELD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.31490, -0.61404)"> WOKING</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.72312, -1.81089)"> NIGHTINGALE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.98543, -0.96553)"> MAPLE HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.16799, -3.12503)"> DELFRYN WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.07380, -0.63444)"> BROUGHTON WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(54.53461, -1.53647)"> ST. WILLIAMS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.92794, -0.21409)"> HOSPITAL STEVENAGE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(54.75076, -1.62051)"> APPLETREE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.54267, -1.46764)"> PINDER HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.48166, -1.83555)"> CEDARS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.64644, -1.79602)"> GLEDHOLT</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.84367, 1.03102)"> THE ORCHARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.69428, -1.78561)"> LODGE BRUGHHOUSE</button>
+                
+                <!-- Add more buttons here as needed -->
+            </div>
+            
+        </div>
+
+        <!--  Section -->
+        <div class="tab-pane fade" id="elysium" role="tabpanel" aria-labelledby="elysium-tab">
+            <div class="btn-grid">
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.18366, -0.607688)"> CHESTERFIELD HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.163458, -1.115965)"> CLIPSTONE HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.098841, -1.390792)"> FIELD HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.306084, -0.490114)"> HEALTHLINC APARTMENTS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.286237, -0.624439)"> AVONFIELD NEUROLOGICAL CENTRE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.304709, -0.487326)"> THE COTTAGE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.066044, -0.83227)"> THE FARNDON UNIT</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.232217, -1.205352)"> THE LIMES</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.978502, -1.225502)"> TOTTLE BROOK HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.002705, -2.121448)"> ADDERLEY GREEN</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.246658, -1.175337)"> BADBY PARK</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.103021, -2.021736)"> BALLINGTON HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.040438, -1.869854)"> BROOK HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.040438, -1.869854)"> COTSWOLD SPA HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.085718, -2.461053)"> STANLEY HOUSE & BOWLEY COURT</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.000281, -1.962469)"> MOORLANDS NEUROLOGICAL CENTRE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.03272, -2.221382)"> THE WOODLANDS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.717664, -3.517024)"> SPRING HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.731263, -3.469214)"> PINHOE VIEW</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.557195, -1.731115)"> THE AVALON CENTRE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.321127, -2.964126)"> THE COPSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.880048, -2.239392)"> THE DEAN NEUROLOGICAL CENTRE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.847373, -3.394716)"> THE WOODMILL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.978961, -3.205618)"> WELLESLEY</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.707378, -3.14975)"> ABERBEEG</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.735642, -2.982887)"> ADERYN</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.556889, -3.210069)"> CEFN CARNAU</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.580688, -2.961615)"> REENE HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.77465, -3.209118)"> TY GLYN EBWY</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.048576, -2.996915)"> TY GROSVENOR</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.841987, -3.004711)"> TY GWYN HALL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.823226, -3.025115)"> TYDFIL HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.321127, -2.964126)"> THE COPSE</button>
+
+
+                <!-- Add more buttons here as needed -->
+            </div>
+        </div>
+
+        <!-- NEUVEN Section -->
+        <div class="tab-pane fade" id="neuven" role="tabpanel" aria-labelledby="neuven-tab">
+            <div class="btn-grid">
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.337154, -2.974144)"> BIRNBECK HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.624841, -1.175553)"> APPLEY CLIFF</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.410013, 0.039039)"> ST CECILIA'S</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(55.976039, -3.193087)"> LEONARD CHESHIRE - NEWHAVEN ROAD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(55.964615, -3.156706)"> LEONARD CHESHIRE - ALEMOOR</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(55.977576, -3.225057)"> LEONARD CHESHIRE - WARDIEBURN</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.929179, -1.388136)"> WHARFEDALE HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.150112, -0.458966)"> MID SHIRES SUPPORTED LIVING SERVICE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.806219, -0.510818)"> ST BRIDGET'S</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.399681, -2.121105)"> OAKWOOD ABI SERVICE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.162942, 0.554004)"> SOBELL LODGE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.144545, -0.09801)"> HEATHERLEY</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.140533, -2.349048)"> HILL HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.366908, -2.879821)"> THE ORCHARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.67334, -1.189151)"> STADON ROAD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(55.899545, -3.56603)"> PINEWOOD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.632591, -2.934645)"> LLANHENNOCK LODGE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.446359, 0.241649)"> SHORE LODGE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(55.95405, -3.111547)"> 25 BATH STREET</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.949991, -0.291197)"> 1 LAVENDER FIELDS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(54.574189, -5.880502)"> LEONARD CHESHIRE ARBI</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(57.476518, -4.228411)"> CHESHIRE HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.156525, -0.605389)"> HYDON HILL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.133968, -5.483868)"> ST TERESA'S</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.949991, -0.291197)"> SYMONDS HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(55.977509, -3.181354)"> LEONARD CHESHIRE DISABILITY - ARGYLE STREET</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(55.957483, -3.410865)"> KIRKLISTON</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.410614, 0.024585)"> SPRINGFIELD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.063325, -1.342047)"> AGNES COURT</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(56.181176, -3.163551)"> HEPBURN COURT, GLAMIS HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.813827, -0.360438)"> FETHNEYS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.724312, -0.506652)"> GODFREY ROBINSON HOME</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.140983, 0.297205)"> SEVEN SPRINGS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.321672, -0.218823)"> THE MANOR</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.335338, -2.974573)"> QUANTOCK HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.880036, -2.07227)"> GLOUCESTERSHIRE HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.427256, -0.077734)"> ATHOL HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(54.712816, -1.743195)"> BRADBURY HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.343609, -0.235047)"> BANSTEAD ROAD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.898453, 1.018423)"> SEVEN RIVERS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(54.986187, -1.593201)"> BRADBURY WING</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.547128, -1.828587)"> GREENACRES</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.24755, -0.197947)"> DORANDENE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.410709, -0.059691)"> MAPLE HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.73187, -1.109894)"> KING STREET</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.467545, -2.514651)"> COSSHAM GARDENS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.714414, -1.575942)"> NEWLANDS HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(55.975954, -3.228307)"> LEONARD CHESHIRE - BLACKADDER</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.989356, -1.483518)"> FRYERS HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.140983, 0.297205)"> LC – SEVEN SPRINGS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.399681, -2.121105)"> LC OAKWOOD RADFORD CL, STOCKPORT</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.467545, -2.514651)"> LC COSSHAM GARDENS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.450665, -2.720339)"> LC ST. HELENS SUPPORTED LIVING</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.008845, -0.266212)"> LC ARLESEY SUPPORTED LIVING</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.24755, -0.197947)"> LC DORANDENE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.432343, -2.231975)"> MHA LAUREL COURT</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.846911, -2.191737)"> MHA BELVEDERE MANOR</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.935594, 1.281255)"> MHA ALEXANDRA HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.409544, -2.609425)"> MHA HARTCLIFFE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(54.638595, -3.540169)"> MHA NEWLANDS LN (AMATHEA CARE HOMES)</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.214652, -2.614965)"> MHA TORRWOOD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.738928, -2.989136)"> MHA STARR HILLS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(52.717389, -1.561006)"> AKARI – SEALE PASTURES HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.590829, -2.744447)"> AKARI LINDSAY HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(54.935709, -1.58213)"> AKARI PHILIPS COURT</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.619915, -3.403144)"> AMICA EXMOUTH HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.88469, -2.793694)"> AMICA THE ORCHARD</button>
+
+                <!-- Add more buttons here as needed -->
+            </div>
+        </div>
+        <!-- NEUVEN Section -->
+        <div class="tab-pane fade" id="nhs" role="tabpanel" aria-labelledby="nhs-tab">
+            <div class="btn-grid">
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.211544, -2.898825)">CHERRY WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.211544, -2.898825)">JUNIPER WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.211544, -2.898825)">BEECH WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.211544, -2.898825)">WILLOW WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.211544, -2.898825)">CORAL WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.260823, -2.146286)">GREENWAYS</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.211544, -2.898825)">INDIGO WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.332283, -3.025848)">MEADOWBANK WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.276214, -2.904396)">OLD HALL SURGERY</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.332283, -3.025848)">RIVERWOOD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.262321, -2.141074)">SILK WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.263065, -2.150297)">MULBERRY WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.032894, -3.101928)">WELLSPRINGS HOSPITAL SITE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.200109, -3.461912)">MINEHEAD COMMUNITY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.011569, -3.121702)">MUSGROVE PARK HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.944843, -2.634712)">YEOVIL HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.946541, -2.648116)">ROWAN WARD 1</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.140557, -2.974132)">BRIDGWATER COMMUNITY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.238794, -2.993884)">BURNHAM ON SEA WAR MEMORIAL HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.420469, -2.784954)">RYDAL UNIT, WHISTON HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.429516, -2.606862)">SHERIDAN WARD WARRINGTON</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.429516, -2.606862)">BYRON WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.395563, -2.969396)">WINDSOR HOUSE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.451064, -2.969018)">CLOCK VIEW HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.68981, -2.176831)">IRWELL WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.429471, -2.96228)">MILLVINA HOUSE CARE HOME</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.472727, -3.002733)">LITHERLAND URGENT TREATMENT CENTRE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.482603, -2.884427)">KIRKBY URGENT TREATMENT CENTRE</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.640182, -2.983572)">DUNES WARD, HARTLEY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(53.560379, -3.092792)">HARINGTON WARD</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.874996, -2.952373)">CHARD COMMUNITY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.880112, -2.797939)">CREWKERNE COMMUNITY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.237318, -2.311568)">FROME COMMUNITY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.190575, -2.562486)">SHEPTON MALLET COMMUNITY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.953148, -2.79828)">SOUTH PETHERTON COMMUNITY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(50.976671, -3.227413)">WELLINGTON COMMUNITY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.160478, -2.699231)">WEST MENDIP COMMUNITY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.162888, -3.323208)">WILLITON COMMUNITY HOSPITAL</button>
+                <button class="btn btn-primary btn-location" onclick="submitCoordinates(51.058753, -2.418169)">WINCANTON COMMUNITY HOSPITAL</button>
+            </div>
+        </div>
+
+
+
+
+
+    </div>
+
+    <!-- Hidden form to submit coordinates -->
+    <form id="coordinatesForm" method="post" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="lat" id="lat" value="">
+        <input type="hidden" name="long" id="long" value="">
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function submitCoordinates(lat, long) {
+        document.getElementById('lat').value = lat;
+        document.getElementById('long').value = long;
+        document.getElementById('coordinatesForm').submit();
+    }
+</script>
+</body>
+</html>

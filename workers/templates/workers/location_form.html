@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Closest Locations</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .form-container {
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background-color: #ffffff;
+        }
+        
+        .logo {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 150px;
+        }
+
+        /* Button grid styles */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            justify-items: center;
+            margin-top: 20px;
+        }
+
+        /* Rounded buttons with hover animation and shadow */
+        .btn-location {
+            border-radius: 50px;
+            width: 180px;          /* Fixed width for all buttons */
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-location:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+        }
+        .btn-right {
+             float: right; /* Aligns the button to the right side */
+             margin-top: -20px; /* Adjusts the top margin to position it above the content */
+        }
+    </style>
+</head>
+<body>
+    <div class="container form-container">
+    
+        <!-- Button to go back to home page -->
+        <a href="{% url 'worker_list' %}" class="btn btn-secondary mt-3 form-group rounded-label">Back to Home</a>
+        <a href="https://findthatpostcode.uk/search/" class="btn btn-right btn-primary mt-3 rounded-button">Find Geocode</a>
+
+    <style>
+        .canvas-container {
+            background-color: #ffffff; /* White background for the canvas effect */
+            padding: 20px; /* Padding around the form */
+            border-radius: 15px; /* Rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Drop shadow */
+            max-width: 400px; /* Maximum width of the container */
+            margin: 0 auto; /* Center the container */
+        }
+    
+        .form-group {
+            margin-bottom: 20px; /* Space between form groups */
+        }
+    
+        .rounded-label {
+            display: inline-block;
+            padding: 8px 12px; /* Padding for labels */
+            background-color: #007bff; /* Button color */
+            color: white; /* Text color */
+            border-radius: 20px; /* Rounded corners for labels */
+            margin-bottom: 5px; /* Space between label and input */
+        }
+    
+        .rounded-input {
+            width: auto; /* Adjust width to fit content */
+            display: inline-block; /* Aligns input fields horizontally */
+            margin: 0 auto; /* Center the input fields */
+            border-radius: 20px; /* Rounded corners for input fields */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Drop shadow */
+        }
+    
+        .rounded-button {
+            border-radius: 20px; /* Rounded corners for button */
+            padding: 10px 20px; /* Padding for button */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Drop shadow */
+            transition: transform 0.3s, box-shadow 0.3s; /* Animation on hover */
+        }
+    
+        .rounded-button:hover {
+            transform: scale(1.05); /* Slightly larger on hover */
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2); /* More pronounced shadow on hover */
+        }
+    </style>
+    
+    <div class="container form-container canvas-container text-center mb-4">
+        <h1 class="text-center">Find the Closest Locations</h1>
+    
+        <!-- Form for lat/long input -->
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group rounded-label">
+                <label for="latInput" class="rounded-label">Latitude:</label>
+                {{ form.latitude }}
+            </div>
+            <div class="form-group rounded-label">
+                <label for="longInput" class="rounded-label">Longitude:</label>
+                {{ form.longitude }}
+            </div>
+            <button type="submit" class="btn btn-primary rounded-button">Submit Coordinates</button>
+        </form>
+
+    </div>
+    
+    
+    </div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Closest Workers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        thead {
+            background-color: #6200ea;
+            color: #ffffff;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+    {% load static %}
+</head>
+<body>
+    <header>
+        <img src="{% static 'workers/logo.png' %}" alt="Logo" style="display: block; margin: 0 auto;">
+        <!-- Button to go back to home page -->
+        <a href="{% url 'worker_list' %}" class="btn btn-secondary mt-3 form-group rounded-label">Back to Home</a>
+    </header>
+    <h1>Closest Workers</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Title</th>
+                <th>Telephone</th>
+                <th>Distance (miles)</th>
+                <th>Type</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for worker, distance in workers %}
+            <tr>
+                <td>{{ worker.name }}</td>
+                <td>{{ worker.title }}</td>
+                <td>
+                    <a href="tel:{{ worker.telephone }}">{{ worker.telephone }}</a>
+
+                </td>
+                <td>{{ distance|floatformat:2 }}</td>
+                <td>
+                    {% if worker.worker_type == 'agency' %}
+                        <i class="fas fa-building" title="Agency"></i>
+                    {% elif worker.worker_type == 'dom' %}
+                        <i class="fas fa-user" title="Domestic"></i>
+                    {% else %}
+                        <i class="fas fa-user-circle" title="Other"></i>
+                    {% endif %}
+                    {{ worker.worker_type }}
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
